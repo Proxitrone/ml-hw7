@@ -1,4 +1,4 @@
-function [W_opt] = myLDA(classes_data, q, reg_data, W_pca)
+function [W_opt, means] = myLDA(classes_data, q, reg_data, W_pca)
 %MYLDA Perform LDA on Yale dataset
 %   Compute class centers first
     classes = size(classes_data, 1);
