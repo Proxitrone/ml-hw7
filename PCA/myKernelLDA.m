@@ -3,7 +3,6 @@ function [W_opt, means] = myKernelLDA(data, k, kernel_type)
 %   Compute within-class and between-class scatter using a kernel
 % Need to center data in kernel space
 
-    
     obs_num = size(data, 2);
     class_num = 15;
     % Generate class vectors
@@ -42,9 +41,7 @@ function [W_opt, means] = myKernelLDA(data, k, kernel_type)
    
    %Regularizing 
     mK = abs(mean(K(:)));
-   
     C = 0.25*mK;
-   
     N = N+C*K;
    
    % Extract eigenvalues and eigenvectors

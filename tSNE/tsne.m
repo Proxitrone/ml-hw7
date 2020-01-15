@@ -1,4 +1,4 @@
-function ydata = tsne(X, labels, no_dims, initial_dims, perplexity)
+function [ydata, P, Q] = tsne(X, labels, mode, no_dims, initial_dims, perplexity)
 %TSNE Performs symmetric t-SNE on dataset X
 %
 %   mappedX = tsne(X, labels, no_dims, initial_dims, perplexity)
@@ -19,8 +19,13 @@ function ydata = tsne(X, labels, no_dims, initial_dims, perplexity)
 %
 % (C) Laurens van der Maaten, 2010
 % University of California, San Diego
-
-
+    if mode ==0 
+        filename = 't-SNE operation';
+    elseif mode ==1
+        filename = 'symmetric SNE operation';
+    end
+    filename = [filename, ' Perplexity ', num2str(perplexity)];
+    
     if ~exist('labels', 'var')
         labels = [];
     end
@@ -73,13 +78,13 @@ function ydata = tsne(X, labels, no_dims, initial_dims, perplexity)
     D = bsxfun(@plus, sum_X, bsxfun(@plus, sum_X', -2 * (X * X')));
     
     % Compute joint probabilities
-    P = d2p(D, perplexity, 1e-5);                                           % compute affinities using fixed perplexity
+    P = d2p(D, perplexity, 1e-5);% compute affinities using fixed perplexity
     clear D
     
     % Run t-SNE
     if initial_solution
-        ydata = tsne_p(P, labels, ydata);
+        ydata = tsne_p(P, labels, ydata, mode, filename);
     else
-        ydata = tsne_p(P, labels, no_dims);
+        [ydata, P, Q] = tsne_p(P, labels, no_dims, mode, filename);
     end
     

@@ -1,4 +1,4 @@
-function ydata = tsne_p(P, labels, no_dims)
+function [ydata, P, Q] = tsne_p(P, labels, no_dims, mode, filename)
 %TSNE_P Performs symmetric t-SNE on affinity matrix P
 %
 %   mappedX = tsne_p(P, labels, no_dims)
@@ -14,8 +14,7 @@ function ydata = tsne_p(P, labels, no_dims)
 %
 %
 % (C) Laurens van der Maaten, 2010
-% University of California, San Diego
-
+% University of California, San Diego   
 
     if ~exist('labels', 'var')
         labels = [];
@@ -59,19 +58,33 @@ function ydata = tsne_p(P, labels, no_dims)
     y_incs  = zeros(size(ydata));
     gains = ones(size(ydata));
     
+    h = figure('Name', filename);
     % Run the iterations
     for iter=1:max_iter
         
         % Compute joint probability that point i and j are neighbors
         sum_ydata = sum(ydata .^ 2, 2);
-        num = 1 ./ (1 + bsxfun(@plus, sum_ydata, bsxfun(@plus, sum_ydata', -2 * (ydata * ydata')))); % Student-t distribution
+        if mode == 0
+            % Student-t distribution
+            num = 1 ./ (1 + bsxfun(@plus, sum_ydata, bsxfun(@plus, sum_ydata', -2 * (ydata * ydata')))); 
+        elseif mode == 1
+            % Normal distribution
+            num =  exp(-(bsxfun(@plus, sum_ydata, bsxfun(@plus, sum_ydata', -2 * (ydata * ydata'))))); 
+        end
         num(1:n+1:end) = 0;                                                 % set diagonal to zero
         Q = max(num ./ sum(num(:)), realmin);                               % normalize to get probabilities
         
-        % Compute the gradients (faster implementation)
-        L = (P - Q) .* num;
-        y_grads = 4 * (diag(sum(L, 1)) - L) * ydata;
-            
+        if mode == 0
+            % Compute the gradients (faster implementation) t-SNE gradient
+            L = (P - Q) .* num;
+            y_grads = 4 * (diag(sum(L, 1)) - L) * ydata;
+        elseif mode == 1
+            % Compute the gradients (faster implementation) Normal gradient
+            L = (P - Q);
+            y_grads = 2 * (diag(sum(L, 1)) - L) * ydata;
+        end
+        
+        
         % Update the solution
         gains = (gains + .2) .* (sign(y_grads) ~= sign(y_incs)) ...         % note that the y_grads are actually -y_grads
               + (gains * .8) .* (sign(y_grads) == sign(y_incs));
@@ -106,6 +119,16 @@ function ydata = tsne_p(P, labels, no_dims)
             axis tight
             axis off
             drawnow
+            
+            frame = getframe(h);
+            im = frame2im(frame);
+            [imind,cm] = rgb2ind(im,256); 
+            % Write to the GIF File 
+            if iter == 10 
+                imwrite(imind,cm,[filename, '.gif'], 'gif', 'Loopcount',inf, 'DelayTime',1); 
+            else 
+                imwrite(imind,cm,[filename, '.gif'], 'gif','WriteMode','append', 'DelayTime',0.5); 
+            end 
         end
     end
     

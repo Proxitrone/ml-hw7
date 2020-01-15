@@ -7,18 +7,12 @@ function [W_opt, means] = myLDA(classes_data, q, reg_data, W_pca)
     for c=1:classes
         means(:, c) = mean(classes_data{c}, 2);
     end
-    % Center the data (data - mean)
-%     for c=1:classes
-%         classes_data{c} = classes_data{c}-means(:, c);
-%     end
+
     % Show class means
     figure('Name','LDA: class means');
     for c=1:classes
         A = reshape(means(:, c), [41, 29]);
         subplot(3, 5, c);
-        %A = abs(A)./max(abs(A));
-%         A = A+abs(min(A, [], 'all'));
-%         A = A./max(A, [], 'all');
         imshow(A);
     end
     
@@ -42,32 +36,19 @@ function [W_opt, means] = myLDA(classes_data, q, reg_data, W_pca)
             S_w = S_w + (diff*diff');
         end
     end
-    
-    % Display the eigenfaces
-%     figure('Name', 'LDA: eigenfaces');
-%     for i=1:25
-%         A = reshape(W_pca(:, i), [41, 29]);
-%         subplot(5, 5, i);
-%         %A = abs(A)./max(abs(A));
-%         A = A+abs(min(A, [], 'all'));
-%         A = A./max(A, [], 'all');
-%         imshow(A);
-%     end
-
     % Get the largest eigenvalues
-    W_pca = W_pca(:,1:14);
+    W_pca = W_pca(:,1:q);
     
     S_bb = W_pca'*S_b*W_pca;
     S_ww = W_pca'*S_w*W_pca;
     % Compute S_w^-1*S_b and take first q largest eigenvectors as W
     Tmp = S_ww\S_bb;
-%     Tmp = inv(S_w)*S_b;
     
     [eigVec, eigVal] = eig(Tmp);
     % sort eigenvectors and corresponding eigenvalues
-    [d, ind] = sort(diag(eigVal), 'ascend');
+    [d, ind] = sort(diag(real(eigVal)), 'ascend');
     eigVal = eigVal(:, ind);
-    eigVec = eigVec(:, ind);
+    eigVec = real(eigVec(:, ind));
     
 %     W_fld = eigVec(:,1:q);
     W_fld = eigVec;
@@ -76,7 +57,7 @@ function [W_opt, means] = myLDA(classes_data, q, reg_data, W_pca)
     W_opt = W_opt';
     % Display the fisherfaces
     figure('Name', 'LDA: fisherfaces');
-    for i=1:size(W_opt, 2);
+    for i=1:size(W_opt, 2)
         A = reshape(W_opt(:, i), [41, 29]);
         subplot(5, 5, i);
         %A = abs(A)./max(abs(A));

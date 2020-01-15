@@ -31,7 +31,7 @@ W_pca=0;
 W_pca = myPCA(Train, k);
 
 %% Perform LDA
-[W_lda, class_means] = myLDA(Train_classes, 10, Train, W_pca);
+[W_lda, class_means] = myLDA(Train_classes, 25, Train, W_pca);
 %% Classify regular PCA and LDA
 [acc_pca, acc_lda] = classify_pca_lda(W_pca, W_lda, Test_classes, class_means);
 disp(['Pca acc: ', num2str(acc_pca)]);
@@ -56,6 +56,40 @@ W_rbf_pca = myKernelPCA(Train, k, 'rbf');
 [acc_pca, acc_lda] = classify_kernel_pca_lda(W_rbf_pca, W_rbf_lda, Test_classes, class_means, Train, Test, 'rbf');
 disp(['RBF pca acc: ', num2str(acc_pca)]);
 disp(['RBF lda acc: ', num2str(acc_lda)]);
+
+
+load mnist2500_labels.txt
+load mnist2500_X.txt
+
+perplexity = [30, 15, 60];
+for i=1:3
+    %% t-SNE
+    [ydata_t, P_t, Q_t] = tsne(mnist2500_X, mnist2500_labels, 0, 2, 30, perplexity(i));
+    figure('Name', ['tSNE P Distribution Visualization, perplexity', num2str(perplexity(i))]);
+    A = (P_t-mean(P_t(:)));
+    A = A+min(abs(A(:)));
+    A = A./max(A(:));
+    imshow(A);
+    figure('Name', ['tSNE Q Distribution Visualization, perplexity', num2str(perplexity(i))]);
+    A = (Q_t-mean(Q_t(:)));
+    A = A+min(abs(A(:)));
+    A = A./max(A(:));
+    imshow(A);
+    %% Symmetric SNE
+    [ydata_n, P_n, Q_n] = tsne(mnist2500_X, mnist2500_labels, 1, 2, 30, perplexity(i));
+    figure('Name', ['SymSNE P Distribution Visualization, perplexity', num2str(perplexity(i))]);
+    A = (P_n-mean(P_n(:)));
+    A = A+min(abs(A(:)));
+    A = A./max(A(:));
+    imshow(A);
+    figure('Name', ['SymSNE Q Distribution Visualization, perplexity', num2str(perplexity(i))]);
+    A = (Q_n-mean(Q_n(:)));
+    A = A+min(abs(A(:)));
+    A = A./max(A(:));
+    imshow(A);
+end
+
+
 
 
 
